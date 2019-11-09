@@ -1,7 +1,7 @@
 import numpy as np
-max_bits = 10
-x_bits = 10
-y_bits = 10
+
+x_bits = 11
+y_bits = 11
 length = x_bits + y_bits +1
 print("Enter 1 to multiply and 2 to divide")
 choice = int(input())
