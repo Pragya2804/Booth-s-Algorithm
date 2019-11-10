@@ -1,15 +1,11 @@
 import numpy as np
+import random
 
-x_bits = 11
-y_bits = 11
-length = x_bits + y_bits +1
-print("Enter 1 to multiply and 2 to divide")
-choice = int(input())
-if(choice == 1):
-	print("Enter numbers to be multiplied")
-	x = int(input())  
-	y = int(input())
 
+def multiply(x, y):
+	x_bits = 11
+	y_bits = 11
+	length = x_bits + y_bits +1
 	x_binary = np.binary_repr(x, x_bits)  # convert x to binary
 	y_binary = np.binary_repr(y, y_bits)  # convert y to binary
 	neg_x_binary = np.binary_repr(-1*x, x_bits)  # convert -x to binary
@@ -72,11 +68,160 @@ if(choice == 1):
 		ans_decimal = -1 * ans_decimal
 	else:
 		ans_decimal = int(ans_binary, 2)  # else answer is positive
+	return ans_binary, ans_decimal
 
-	print("Binary answer: ", ans_binary)
-	print("Decimal answer ", ans_decimal)
 
-else:
-	print("Enter numbers to be divided")
-	x = int(input())
-	y = int(input())
+def subtract(Rem, div):
+	Ans = []
+	C = 0
+	for j in range(len(Rem)):
+		i = len(Rem) - 1 - j;
+		A = int(Rem[i])
+		B = int(div[i]);
+		Ans = [str((A^B)^C)] + Ans
+		C = (A^1)*(B or C) or (B*C)
+	# print(ToString(Ans))
+	return Ans
+
+
+def ToString(Arr):
+	ans = ''
+	for i in Arr:
+		ans += i
+	return ans
+
+
+def RestoreDivision(dividend, divisor):
+
+	case = 0
+
+	if(dividend > 0 and divisor<0):
+		case = 1
+	if(dividend < 0 and divisor > 0):
+		case = 2
+	if(dividend < 0 and divisor < 0):
+		case = 3
+
+	divisor = abs(divisor)
+	dividend = abs(dividend)
+
+	if divisor > dividend:
+		Quotient = 0
+		Remainder = dividend
+
+	else:
+		# Restoring Algo
+		# Div is the divisor register
+		# Rem is the remainder register
+		# Quo is the Quotient register 
+		# Restore is the register that stores restoration bit
+
+
+		# Step 1 - Initializing values
+		Div = [i for i in format(divisor, "b")];
+		Quo = [i for i in format(dividend, "b")];
+		n = len(Quo);
+		Rem = ["0"]
+		for i in range(n):
+			Rem+=["0"];
+		for i in range(n - len(Div) + 1):
+			Div = ["0"] + Div;
+		Restore = 0
+		# print(n, ToString(Div), ToString(Rem), ToString(Quo), Restore)
+
+
+		#Algo start
+		while n  > 0:
+			# Shift remainder left
+			for i in range(len(Rem) - 1):
+				Rem[i] = Rem[i+1]
+			Rem[len(Rem) - 1] = Quo[0]
+
+			# Subracting Divisor from Remainder
+			PossibleRem = subtract(Rem, Div)
+			if PossibleRem[0] == '1':
+				Restore = 0
+			else:
+				Restore = 1
+				Rem = PossibleRem
+
+			# Shifting quotient while restoring the last bit
+			for i in range(len(Quo) - 1):
+				Quo[i] = Quo[i+1]
+			Quo[len(Quo) - 1] = str(Restore)
+			# print(n, ToString(Div), ToString(Rem), ToString(Quo), Restore)
+
+			n -= 1
+
+		Remainder = ''
+		Quotient = ''
+		for i in Rem:
+			Remainder += i
+
+		for i in Quo:
+			Quotient += i
+
+		# Converting back to decimal
+		Quotient = int(Quotient, 2)
+		Remainder = int(Remainder, 2)
+
+	# Checking for negative numbers explicitly
+	if(case == 1 ):
+		Quotient = (-1)*Quotient
+		if(Remainder != 0):
+			Quotient -= 1
+			Remainder -= divisor
+	if(case == 2):
+		Quotient = (-1)*Quotient
+		if(Remainder != 0):
+			Quotient -= 1
+			Remainder = (-1)*Remainder + divisor
+	if(case == 3):
+		Remainder = (-1)*Remainder 
+
+	return (Quotient, Remainder)
+
+
+
+if __name__ == '__main__':
+	
+	OutputFile = open("Output.txt", 'a')
+	print("Enter 1 to multiply and 2 to divide")
+	choice = int(input())
+	if(choice == 1):
+
+		print("Enter numbers to be multiplied")
+		x = int(input())  
+		y = int(input())
+		ans_binary, ans_decimal = multiply(x,y)
+		print("Binary answer: ", ans_binary)
+		print("Decimal answer ", ans_decimal)
+		OutputFile.write(str(x)+" X "+str(y)+ " = " + str(ans_decimal)+" ")
+		OutputFile.write("Binary Answer = " + ans_binary+"\n")
+
+
+	else:
+		passed = True
+		print("Enter the value of dividend and enter")
+		try:
+			dividend = int(input());
+		except:
+			print("Not a valid dividend")
+			passed = False
+		print("Enter the value of divisor and enter")
+		try:
+			divisor = int(input());
+		except:
+			print("Not a valid divisor")
+			passed = False
+
+		if divisor == 0:
+			OutputFile.write("Dividend = "+str(dividend)+" Divisor = "+str(divisor)+"\n")
+			OutputFile.write("ERROR : Division by 0 \n")
+			print("ERROR : Division by 0 ")
+		elif passed != False:
+			Quotient, Remainder = RestoreDivision(dividend, divisor);
+			OutputFile.write("Dividend = "+str(dividend)+" Divisor = "+str(divisor))
+			print("Quotient is ", Quotient)
+			print("Remainder is ", Remainder)
+			OutputFile.write(" Quotient = " + str(Quotient) + " Remainder = "+ str(Remainder) + "\n")
